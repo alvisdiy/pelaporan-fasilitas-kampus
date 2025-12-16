@@ -19,5 +19,7 @@ cp .env.example .env
 php artisan key:generate
 
 //Atur database di file .env (DB_DATABASE, DB_USERNAME, DB_PASSWORD)
-
-php artisan migrate
+php artisan migrate--seed
+npm install
+npm run dev
+php artisan serve
