@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\User; // Jangan lupa import
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -15,39 +17,26 @@ class AuthController extends Controller
         if (session()->has('user')) {
             return redirect()->route('dashboard');
         }
-        
+
         return view('auth.login');
     }
 
-    /**
-     * Proses login
-     */
     public function doLogin(Request $request)
     {
-        // Validasi input
+        // Validasi tetep jalan
         $validated = $request->validate([
-            'nama' => 'required|string|min:3|max:50',
-            'nim' => 'required|string|min:8|max:15'
-        ], [
-            'nama.required' => 'Nama wajib diisi',
-            'nama.min' => 'Nama minimal 3 karakter',
-            'nama.max' => 'Nama maksimal 50 karakter',
-            'nim.required' => 'NIM wajib diisi',
-            'nim.min' => 'NIM minimal 8 karakter',
-            'nim.max' => 'NIM maksimal 15 karakter',
+            'nim' => 'required|string',
         ]);
 
-        // Simpan data user ke session
-        session([
-            'user' => [
-                'nama' => $validated['nama'],
-                'nim' => $validated['nim'],
-                'prodi' => 'Sistem Informasi',
-                'login_time' => now()->toDateTimeString()
-            ]
-        ]);
+        // Cek apakah user dengan NIM ini ada di database?
+        $user = User::where('nim', $validated['nim'])->first();
 
-        return redirect()->route('dashboard')->with('success', 'Login berhasil! Selamat datang ' . $validated['nama']);
+        if (!$user) {
+            return back()->withErrors(['nim' => 'NIM tidak terdaftar di sistem!']);
+        }
+        Auth::login($user); 
+
+        return redirect()->route('dashboard')->with('success', 'Login berhasil, selamat datang ' . $user->name);
     }
 
     /**
@@ -57,7 +46,7 @@ class AuthController extends Controller
     {
         // Hapus semua session
         session()->flush();
-        
+
         return redirect()->route('login')->with('success', 'Logout berhasil!');
     }
 }

@@ -60,8 +60,8 @@ class LaporanController extends Controller
             'kerusakan'    => $request->kerusakan,
             'status'       => 'Diterima',
             'foto'         => $fotoPath,
-            'pelapor_nama' => 'Mahasiswa Web',
-            'pelapor_nim'  => '12345678'
+            'pelapor_nama' => auth()->user()->name,
+            'pelapor_nim'  => auth()->user()->nim,
         ]);
 
         return redirect()->route('dashboard')->with('success', 'Laporan berhasil dibuat!');
