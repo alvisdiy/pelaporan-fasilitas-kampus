@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Laporan; // PAKE MODEL DATABASE
+use App\Models\Laporan;
+use App\Http\Requests\StoreLaporanRequest;
+use App\Http\Requests\UpdateLaporanRequest;
 use Illuminate\Support\Facades\Storage;
 
 class LaporanController extends Controller
@@ -28,8 +30,14 @@ class LaporanController extends Controller
     public function index()
     {
         // Paginasi langsung dari Database
-        $paginated = Laporan::latest()->paginate(10);
-        return view('laporan.index', compact('paginated'));
+        $laporan = Laporan::latest()->paginate(10);
+
+        // Data untuk view
+        $paginated = $laporan->items(); // Ambil data items
+        $page = $laporan->currentPage();
+        $totalPages = $laporan->lastPage();
+
+        return view('laporan.index', compact('paginated', 'page', 'totalPages'));
     }
 
     public function create()
@@ -37,7 +45,7 @@ class LaporanController extends Controller
         return view('laporan.create');
     }
 
-    public function store(Request $request)
+    public function store(StoreLaporanRequest $request)
     {
         $fotoPath = null;
         if ($request->hasFile('foto')) {
@@ -71,8 +79,8 @@ class LaporanController extends Controller
         return view('laporan.edit', compact('laporan'));
     }
 
-    public function update(Request $request, $id)
-    {    
+    public function update(UpdateLaporanRequest $request, $id)
+    {
         $laporan = Laporan::findOrFail($id);
         $laporan->update([
             'kerusakan' => $request->kerusakan,
@@ -82,15 +90,10 @@ class LaporanController extends Controller
         return redirect()->route('laporan.show', $id)->with('success', 'Laporan berhasil diupdate!');
     }
 
-    public function destroy($id) // Ganti nama jadi destroy biar standar Resource
+    public function destroy($id)
     {
         $laporan = Laporan::findOrFail($id);
-
-        if ($laporan->foto) {
-            Storage::disk('public')->delete($laporan->foto);
-        }
-
-        $laporan->delete();
+        $laporan->delete(); // Foto otomatis kehapus berkat kode di Model tadi!
 
         return redirect()->route('dashboard')->with('success', 'Laporan berhasil dihapus!');
     }

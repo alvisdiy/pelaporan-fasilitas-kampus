@@ -27,20 +27,20 @@
             @foreach($paginated as $index => $laporan)
             <tr>
                 <td>{{ (($page - 1) * 10) + $index + 1 }}</td>
-                <td>{{ $laporan['tanggal'] }}</td>
-                <td>{{ $laporan['gedung'] }} - {{ $laporan['ruang'] }}</td>
-                <td>{{ $laporan['fasilitas'] }}</td>
-                <td>{{ Str::limit($laporan['kerusakan'], 50) }}</td>
+                <td>{{ $laporan->created_at->format('d/m/Y H:i') }}</td>
+                <td>{{ $laporan->gedung }} - {{ $laporan->ruang }}</td>
+                <td>{{ $laporan->fasilitas }}</td>
+                <td>{{ Str::limit($laporan->kerusakan, 50) }}</td>
                 <td>
-                    <span class="status status-{{ strtolower($laporan['status']) }}">
-                        {{ $laporan['status'] }}
+                    <span class="status status-{{ strtolower($laporan->status) }}">
+                        {{ $laporan->status }}
                     </span>
                 </td>
                 <td class="actions">
-                    <a href="{{ route('laporan.show', $laporan['id']) }}" class="btn btn-sm">
+                    <a href="{{ route('laporan.show', $laporan->id) }}" class="btn btn-sm">
                         <i class="fas fa-eye"></i>
                     </a>
-                    <a href="{{ route('laporan.edit', $laporan['id']) }}" class="btn btn-sm">
+                    <a href="{{ route('laporan.edit', $laporan->id) }}" class="btn btn-sm">
                         <i class="fas fa-edit"></i>
                     </a>
                 </td>
