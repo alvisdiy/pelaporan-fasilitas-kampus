@@ -4,7 +4,7 @@
 
 @section('content')
 <h1><i class="fas fa-dashboard"></i> Dashboard</h1>
-<p>Selamat datang, {{ session('user.nama') }}!</p>
+<p>Selamat datang, {{ Auth::user()->name }}!</p>
 
 <div class="stats">
     <div class="stat-card">
@@ -37,16 +37,16 @@
         @foreach($recent as $laporan)
         <div class="laporan-item">
             <div class="laporan-header">
-                <strong>{{ $laporan['fasilitas'] }}</strong>
-                <span class="status status-{{ strtolower($laporan['status']) }}">
-                    {{ $laporan['status'] }}
+                <strong>{{ $laporan->fasilitas }}</strong>
+                <span class="status status-{{ strtolower($laporan->status) }}">
+                    {{ $laporan->status }}
                 </span>
             </div>
-            <p>{{ $laporan['gedung'] }} - {{ $laporan['ruang'] }}</p>
-            <p>{{ Str::limit($laporan['kerusakan'], 100) }}</p>
+            <p>{{ $laporan->gedung }} - {{ $laporan->ruang }}</p>
+            <p>{{ Str::limit($laporan->kerusakan, 100) }}</p>
             <div class="laporan-footer">
-                <span>{{ $laporan['tanggal'] }}</span>
-                <a href="{{ route('laporan.show', $laporan['id']) }}">Detail</a>
+                <span>{{ $laporan->created_at->diffForHumans() }}</span>
+                <a href="{{ route('laporan.show', $laporan->id) }}">Detail</a>
             </div>
         </div>
         @endforeach

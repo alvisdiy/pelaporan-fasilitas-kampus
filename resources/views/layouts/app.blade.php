@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    @if(session()->has('user'))
+    @auth {{-- Ganti dari session()->has('user') ke @auth --}}
     <nav class="navbar">
         <div class="nav-left">
             <i class="fas fa-university"></i>
@@ -21,11 +21,11 @@
             <a href="{{ route('laporan.create') }}"><i class="fas fa-plus"></i> Buat Laporan</a>
         </div>
         <div class="nav-right">
-            <span><i class="fas fa-user"></i> {{ session('user.nama') }}</span>
+            <span><i class="fas fa-user"></i> {{ Auth::user()->name }}</span>
             <a href="{{ route('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </div>
     </nav>
-    @endif
+    @endauth
 
     <div class="container">
         @if(session('success'))

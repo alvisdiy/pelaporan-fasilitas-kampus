@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\User; // Jangan lupa import
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -14,39 +15,71 @@ class AuthController extends Controller
     public function login()
     {
         // Jika sudah login, redirect ke dashboard
-        if (session()->has('user')) {
+        if (Auth::check()) {
             return redirect()->route('dashboard');
         }
 
         return view('auth.login');
     }
 
+    /**
+     * Proses login
+     */
     public function doLogin(Request $request)
     {
-        // Validasi tetep jalan
+        // Validasi input
         $validated = $request->validate([
             'nim' => 'required|string',
+        ], [
+            'nim.required' => 'NIM wajib diisi',
         ]);
 
-        // Cek apakah user dengan NIM ini ada di database?
+        // Cek apakah user dengan NIM ini ada di database
         $user = User::where('nim', $validated['nim'])->first();
 
-        if (!$user) {
-            return back()->withErrors(['nim' => 'NIM tidak terdaftar di sistem!']);
-        }
-        Auth::login($user); 
+        // Log untuk debugging
+        Log::info('Login attempt', [
+            'nim' => $validated['nim'],
+            'user_found' => $user ? 'yes' : 'no'
+        ]);
 
-        return redirect()->route('dashboard')->with('success', 'Login berhasil, selamat datang ' . $user->name);
+        if (!$user) {
+            return back()
+                ->withErrors(['nim' => 'NIM tidak terdaftar di sistem!'])
+                ->withInput();
+        }
+
+        // Login menggunakan Auth facade Laravel
+        Auth::login($user, true); // true = remember me
+
+        // Regenerate session untuk keamanan
+        $request->session()->regenerate();
+
+        // Log successful login
+        Log::info('Login successful', [
+            'user_id' => $user->id,
+            'user_name' => $user->name
+        ]);
+
+        return redirect()
+            ->route('dashboard')
+            ->with('success', 'Login berhasil, selamat datang ' . $user->name);
     }
 
     /**
      * Proses logout
      */
-    public function logout()
+    public function logout(Request $request)
     {
-        // Hapus semua session
-        session()->flush();
+        Log::info('Logout', ['user_id' => Auth::id()]);
 
-        return redirect()->route('login')->with('success', 'Logout berhasil!');
+        Auth::logout();
+        
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()
+            ->route('login')
+            ->with('success', 'Logout berhasil!');
     }
 }
