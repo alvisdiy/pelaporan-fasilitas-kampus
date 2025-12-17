@@ -1,7 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\User; 
+
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\Laporan;
 use App\Http\Requests\StoreLaporanRequest;
@@ -26,7 +27,7 @@ class LaporanController extends Controller
 
         return view('dashboard', compact('recent', 'stats'));
     }
-
+    
     public function index()
     {
         // Paginasi langsung dari Database
@@ -82,6 +83,9 @@ class LaporanController extends Controller
     public function update(UpdateLaporanRequest $request, $id)
     {
         $laporan = Laporan::findOrFail($id);
+        if ($laporan->pelapor_nim !== auth()->user()->nim) {
+            abort(403, 'Anda tidak punya akses untuk mengubah laporan ini!');
+        }
         $laporan->update([
             'kerusakan' => $request->kerusakan,
             'status'    => $request->status
@@ -93,7 +97,11 @@ class LaporanController extends Controller
     public function destroy($id)
     {
         $laporan = Laporan::findOrFail($id);
-        $laporan->delete(); // Foto otomatis kehapus berkat kode di Model tadi!
+        if ($laporan->pelapor_nim !== auth()->user()->nim) {
+            abort(403, 'Enak aja mau hapus punya orang!');
+        }
+
+        $laporan->delete();
 
         return redirect()->route('dashboard')->with('success', 'Laporan berhasil dihapus!');
     }

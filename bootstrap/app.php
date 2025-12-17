@@ -13,9 +13,6 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         // Registrasi middleware alias
-        $middleware->alias([
-            'auth.custom' => \App\Http\Middleware\AuthCustom::class,
-        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

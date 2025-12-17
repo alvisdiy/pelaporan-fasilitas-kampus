@@ -14,9 +14,9 @@ Route::post('/login', [AuthController::class, 'doLogin'])->name('login.post');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Protected Routes
-Route::middleware('auth.custom')->group(function () {
+Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [LaporanController::class, 'dashboard'])->name('dashboard');
-    
+    // ... sisanya sama
     // Laporan Routes
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
     Route::get('/laporan/create', [LaporanController::class, 'create'])->name('laporan.create');

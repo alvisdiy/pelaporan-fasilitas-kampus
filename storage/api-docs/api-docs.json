@@ -1,0 +1,234 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Dokumentasi API Pelaporan Fasilitas Kampus",
+        "description": "Dokumentasi lengkap untuk endpoint API Laporan dan Auth",
+        "contact": {
+            "email": "admin@kampus.ac.id"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000/api",
+            "description": "Demo API Server"
+        }
+    ],
+    "paths": {
+        "/login": {
+            "post": {
+                "tags": [
+                    "Autentikasi"
+                ],
+                "summary": "Login User (Dapet Token)",
+                "description": "Masukin NIM dan Password buat dapet token akses.",
+                "operationId": "65fa0bb76884b88a08548aef96bbca81",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "nim": {
+                                        "type": "string",
+                                        "example": "12345678"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "password"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login Berhasil",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Login berhasil"
+                                        },
+                                        "access_token": {
+                                            "type": "string",
+                                            "example": "1|AbCdEfGhIjKlMnOpQrStUvWxYz"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Password Salah"
+                    }
+                }
+            }
+        },
+        "/laporan": {
+            "get": {
+                "tags": [
+                    "Laporan"
+                ],
+                "summary": "Lihat Semua Laporan",
+                "operationId": "de15307a274af56850d849db13250a1f",
+                "responses": {
+                    "200": {
+                        "description": "List Data Laporan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "gedung": {
+                                                        "type": "string",
+                                                        "example": "Gedung A"
+                                                    },
+                                                    "kerusakan": {
+                                                        "type": "string",
+                                                        "example": "AC Bocor"
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "example": "Diterima"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Laporan"
+                ],
+                "summary": "Buat Laporan Baru",
+                "operationId": "2b87bfd186c545604e43670edee7df7c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "gedung": {
+                                        "type": "string",
+                                        "example": "Gedung B"
+                                    },
+                                    "ruang": {
+                                        "type": "string",
+                                        "example": "Lab 1"
+                                    },
+                                    "fasilitas": {
+                                        "type": "string",
+                                        "example": "PC-01"
+                                    },
+                                    "kerusakan": {
+                                        "type": "string",
+                                        "example": "Mati Total"
+                                    },
+                                    "foto": {
+                                        "description": "File Gambar (Optional)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Laporan Berhasil Dibuat"
+                    },
+                    "422": {
+                        "description": "Validasi Gagal"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/laporan/{id}": {
+            "get": {
+                "tags": [
+                    "Laporan"
+                ],
+                "summary": "Detail Laporan",
+                "operationId": "7b35c9f9c1d703316c82973f68cbad11",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID Laporan",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detail Laporan Ditemukan"
+                    },
+                    "404": {
+                        "description": "Laporan Tidak Ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "description": "Login dulu pake /login buat dapet token",
+                "name": "Token Based Auth",
+                "in": "header",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Autentikasi",
+            "description": "Autentikasi"
+        },
+        {
+            "name": "Laporan",
+            "description": "Laporan"
+        }
+    ]
+}

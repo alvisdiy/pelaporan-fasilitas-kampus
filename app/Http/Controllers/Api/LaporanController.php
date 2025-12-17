@@ -28,8 +28,8 @@ class LaporanController extends Controller
             [
                 'status' => 'Diterima',
                 'foto' => $fotoPath,
-                'pelapor_nama' => 'User API', 
-                'pelapor_nim' => '000000'
+                'pelapor_nama' => $request->user()->name,
+                'pelapor_nim' => $request->user()->nim
             ]
         ));
 

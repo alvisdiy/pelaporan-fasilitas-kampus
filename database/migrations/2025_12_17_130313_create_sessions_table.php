@@ -14,9 +14,18 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('nim')->unique(); // Tambah ini!// Boleh null kalau tanpa password (not recommended tapi ok buat tugas simple)
+            $table->string('nim')->unique(); // Ini custom lu tadi
+            $table->string('password')->nullable(); // Jangan lupa dikasih default/nullable kalau mau login pake cara lain
             $table->rememberToken();
             $table->timestamps();
+        });
+        Schema::create('sessions', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->foreignId('user_id')->nullable()->index();
+            $table->string('ip_address', 45)->nullable();
+            $table->text('user_agent')->nullable();
+            $table->longText('payload');
+            $table->integer('last_activity')->index();
         });
     }
 
@@ -25,8 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
     }
 };
