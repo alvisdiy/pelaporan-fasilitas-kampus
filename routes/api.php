@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\LaporanController;
 
-Route::apiResource('laporan', LaporanController::class);
+Route::apiResource('laporan', LaporanController::class, ['as' => 'api']);
 
 Route::get('/user', function (Request $request) {
     return $request->user();

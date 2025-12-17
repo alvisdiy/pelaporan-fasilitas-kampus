@@ -27,10 +27,13 @@ class StoreLaporanRequest extends FormRequest
     // 3. Pesan validasi kustom
     protected function failedValidation(Validator $validator)
     {
+        if ($this->wantsJson() || $this->is('api/*')) {
         throw new HttpResponseException(response()->json([
             'status' => false,
             'message' => 'Ups, isian tidak valid',
             'errors' => $validator->errors()
         ], 422));
+    }
+    parent::failedValidation($validator);
     }
 }

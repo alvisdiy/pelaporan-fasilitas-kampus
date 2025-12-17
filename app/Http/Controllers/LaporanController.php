@@ -3,43 +3,33 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use App\Models\Laporan; // PAKE MODEL DATABASE
+use Illuminate\Support\Facades\Storage;
 
 class LaporanController extends Controller
 {
-    private function getLaporan()
-    {
-        return session('laporan', []);
-    }
-
-    private function saveLaporan($data)
-    {
-        session(['laporan' => $data]);
-    }
+    // HAPUS FUNCTION getLaporan() & saveLaporan() YANG LAMA (SAMPAH SESSION)
 
     public function dashboard()
     {
-        $laporan = $this->getLaporan();
+        // Ambil data real dari Database
+        $recent = Laporan::latest()->take(5)->get();
+
         $stats = [
-            'total' => count($laporan),
-            'diterima' => collect($laporan)->where('status', 'Diterima')->count(),
-            'diproses' => collect($laporan)->where('status', 'Diproses')->count(),
-            'selesai' => collect($laporan)->where('status', 'Selesai')->count(),
+            'total'    => Laporan::count(),
+            'diterima' => Laporan::where('status', 'Diterima')->count(),
+            'diproses' => Laporan::where('status', 'Diproses')->count(),
+            'selesai'  => Laporan::where('status', 'Selesai')->count(),
         ];
-        $recent = array_slice($laporan, 0, 5);
+
         return view('dashboard', compact('recent', 'stats'));
     }
 
     public function index()
     {
-        $laporan = $this->getLaporan();
-        $perPage = 10;
-        $page = request('page', 1);
-        $offset = ($page - 1) * $perPage;
-        $paginated = array_slice($laporan, $offset, $perPage);
-        $totalPages = ceil(count($laporan) / $perPage);
-        
-        return view('laporan.index', compact('paginated', 'page', 'totalPages'));
+        // Paginasi langsung dari Database
+        $paginated = Laporan::latest()->paginate(10);
+        return view('laporan.index', compact('paginated'));
     }
 
     public function create()
@@ -49,90 +39,59 @@ class LaporanController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'gedung' => 'required|max:100',
-            'ruang' => 'required|max:50',
-            'fasilitas' => 'required|max:100',
-            'kerusakan' => 'required|min:10|max:500',
-            'foto' => 'nullable|image|max:2048'
-        ]);
-
-        $laporan = $this->getLaporan();
-        $foto = null;
-
+        $fotoPath = null;
         if ($request->hasFile('foto')) {
-            $file = $request->file('foto');
-            $filename = 'laporan_' . time() . '.' . $file->getClientOriginalExtension();
-            $file->storeAs('public/laporan', $filename);
-            $foto = 'laporan/' . $filename;
+            $fotoPath = $request->file('foto')->store('laporan', 'public');
         }
 
-        $newLaporan = [
-            'id' => Str::uuid(),
-            'gedung' => $request->gedung,
-            'ruang' => $request->ruang,
-            'fasilitas' => $request->fasilitas,
-            'kerusakan' => $request->kerusakan,
-            'status' => 'Diterima',
-            'tanggal' => now()->format('d/m/Y'),
-            'waktu' => now()->format('H:i'),
-            'pelapor' => session('user.nama'),
-            'nim_pelapor' => session('user.nim'),
-            'foto' => $foto
-        ];
-
-        array_unshift($laporan, $newLaporan);
-        $this->saveLaporan($laporan);
+        // Simpan ke Database MySQL
+        Laporan::create([
+            'gedung'       => $request->gedung,
+            'ruang'        => $request->ruang,
+            'fasilitas'    => $request->fasilitas,
+            'kerusakan'    => $request->kerusakan,
+            'status'       => 'Diterima',
+            'foto'         => $fotoPath,
+            'pelapor_nama' => 'Mahasiswa Web',
+            'pelapor_nim'  => '12345678'
+        ]);
 
         return redirect()->route('dashboard')->with('success', 'Laporan berhasil dibuat!');
     }
 
     public function show($id)
     {
-        $laporan = collect($this->getLaporan())->firstWhere('id', $id);
-        if (!$laporan) abort(404);
+        $laporan = Laporan::findOrFail($id); // Error 404 otomatis kalo gak ketemu
         return view('laporan.show', compact('laporan'));
     }
 
     public function edit($id)
     {
-        $laporan = collect($this->getLaporan())->firstWhere('id', $id);
-        if (!$laporan) abort(404);
+        $laporan = Laporan::findOrFail($id);
         return view('laporan.edit', compact('laporan'));
     }
 
     public function update(Request $request, $id)
-    {
-        $request->validate([
-            'kerusakan' => 'required|min:10|max:500',
-            'status' => 'required|in:Diterima,Diproses,Selesai'
+    {    
+        $laporan = Laporan::findOrFail($id);
+        $laporan->update([
+            'kerusakan' => $request->kerusakan,
+            'status'    => $request->status
         ]);
 
-        $laporan = $this->getLaporan();
-        $updated = false;
-
-        foreach ($laporan as &$item) {
-            if ($item['id'] == $id) {
-                $item['kerusakan'] = $request->kerusakan;
-                $item['status'] = $request->status;
-                $updated = true;
-                break;
-            }
-        }
-
-        if (!$updated) return back()->with('error', 'Laporan tidak ditemukan');
-        
-        $this->saveLaporan($laporan);
         return redirect()->route('laporan.show', $id)->with('success', 'Laporan berhasil diupdate!');
     }
 
-    public function delete(Request $request, $id)
+    public function destroy($id) // Ganti nama jadi destroy biar standar Resource
     {
-        $laporan = collect($this->getLaporan())->reject(function ($item) use ($id) {
-            return $item['id'] == $id;
-        })->values()->all();
-        
-        $this->saveLaporan($laporan);
+        $laporan = Laporan::findOrFail($id);
+
+        if ($laporan->foto) {
+            Storage::disk('public')->delete($laporan->foto);
+        }
+
+        $laporan->delete();
+
         return redirect()->route('dashboard')->with('success', 'Laporan berhasil dihapus!');
     }
 }
