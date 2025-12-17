@@ -27,7 +27,7 @@
                 <label><i class="fas fa-id-card"></i> NIM</label>
                 <input type="text" name="nim" value="{{ old('nim') }}" required placeholder="Masukkan NIM">
             </div>
-            <div class="mb-3">
+            <div class="form-group">
                 <label for="password" class="form-label">Password</label>
                 <input type="password" name="password" class="form-control" required>
             </div>
