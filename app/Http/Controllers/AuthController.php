@@ -38,4 +38,4 @@ class AuthController extends Controller
         session()->flush();
         return redirect()->route('login')->with('success', 'Logout berhasil!');
     }
-}
+};
